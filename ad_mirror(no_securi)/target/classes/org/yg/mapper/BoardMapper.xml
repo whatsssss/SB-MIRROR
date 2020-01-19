@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.yg.mapper.BoardMapper">
+
+	<insert id="insert">
+		insert into tbl_board(title,content,writer,secret, filecheck)
+		values(#{title}, #{content}, #{writer}, #{secret}, #{filecheck})
+	</insert>
+
+	<select id="select" resultType="BoardVO">
+		select * from tbl_board where bno
+		= #{bno}
+	</select>
+
+	<update id="update">
+		update tbl_board set title = #{title}, content =
+		#{content}, secret = #{secret}, filecheck={filecheck}
+		where bno = #{bno}
+	</update>
+
+	<select id="selectAll" resultType="BoardVO">
+		select * from tbl_board
+	
+		where bno > 0 order by bno desc
+	</select>
+
+	<select id="selectPage1" resultType="BoardVO">
+		select * from tbl_board
+		right outer join (select username, auth from tbl_member mem left outer join
+		tbl_member_auth auth
+		on mem.userid = auth.userid where auth='ROLE_MEMBER' or auth='ROLE_USER' and mem.userid = auth.userid) a on writer
+		= a.username
+		<include refid="searchcri1"></include>
+		order by bno desc limit #{skip},#{amount}
+	</select>
+	
+	<select id="selectPageCount" resultType="int">
+		select count(bno) from tbl_board
+		right outer join (select username, auth from tbl_member mem left outer join
+		tbl_member_auth auth
+		on mem.userid = auth.userid where auth='ROLE_MEMBER' or auth='ROLE_USER' and mem.userid = auth.userid) a on writer
+		= a.username
+		<include refid="searchcri1"></include>
+	</select>
+
+
+	<!-- <select id="selectPage" resultType="BoardVO"> select * from tbl_board20 
+		<include refid="searchCri"></include> order by bno desc limit #{skip}, #{amount} 
+		</select> -->
+
+	<sql id="searchcri">
+		<if test="map!= null">
+			<where> 
+				<foreach collection="map" index="key" item="val">
+					<trim prefix="or">
+						<if test="key == 'T'.toString()">
+							title like concat('%',#{val},'%')
+						</if>
+						<if test="key == 'C'.toString()">
+							content like concat('%',#{val},'%')
+						</if>
+						<if test="key == 'W'.toString()">
+							writer like concat('%',#{val},'%')
+						</if>
+					</trim>
+				</foreach>
+			</where>
+		</if>
+	</sql>
+	
+	<sql id="searchcri1">
+	<where>
+		<if test="map!= null">
+				<foreach collection="map" index="key" item="val">
+					<trim prefix="or">
+						<if test="key == 'T'.toString()">
+							title like concat('%',#{val},'%')
+						</if>
+						<if test="key == 'C'.toString()">
+							content like concat('%',#{val},'%')
+						</if>
+						<if test="key == 'W'.toString()">
+							writer like concat('%',#{val},'%')
+						</if>
+					</trim>
+				</foreach>
+		</if>
+		</where>
+	</sql>
+
+	<select id="search" resultType="BoardVO">
+		select * from tbl_board
+		<if test="map != null">
+			<where>
+				<foreach collection="map" index="key" item="val">
+					<trim prefix="or">
+						<if test="key == 'T'.toString()">
+							title like concat('%',#{val},'%')
+						</if>
+						<if test="key == 'C'.toString()">
+							content like concat('%',#{val},'%')
+						</if>
+						<if test="key == 'W'.toString()">
+							writer like concat('%',#{val},'%')
+						</if>
+					</trim>
+				</foreach>
+			</where>
+		</if>
+		order by bno desc limit 0, 20
+	</select>
+</mapper>
+
